@@ -1,12 +1,50 @@
-# React + Vite
+# AI Resume Builder - React Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, high-performance React application built with Vite and TailwindCSS for editing and generating standardized resumes.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Real-time Editor**: Modify your resume data with a live-syncing interface.
+- **AI-Powered Parsing**: Integrated with the FastAPI backend for intelligent resume extraction.
+- **Premium DOCX Export**: Generate "invincible" Word documents that are 100% compatible with Microsoft Word.
+- **Branded Header**: Automated branding with the Maveric Systems logo and decorative sidebar.
+- **High-Fidelity Preview**: Visual representation of exactly how the final resume will look.
 
-## Expanding the ESLint configuration
+## Prerequisites
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Node.js 18+
+- npm 9+
+
+## Installation
+
+### 1. Install Dependencies
+```bash
+npm install
+```
+
+### 2. Configure Environment
+Copy `.env.example` to `.env` and adjust the backend API URL if needed:
+```bash
+cp .env.example .env
+```
+
+### 3. Run Development Server
+```bash
+npm run dev
+```
+
+The application will be available at: `http://localhost:5173/frontend/`
+
+## Deployment
+
+### Build for Production
+```bash
+npm run build
+```
+The optimized build will be generated in the `dist` directory.
+
+## Key Technologies
+- **Vite**: Ultra-fast build tool and dev server.
+- **React**: Component-based UI library.
+- **TailwindCSS**: Utility-first CSS framework.
+- **Docx.js**: Robust library for generating DOCX files directly in the browser.

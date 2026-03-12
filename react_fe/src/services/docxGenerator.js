@@ -32,7 +32,7 @@ export const generateAndDownloadResume = async (data) => {
     console.error("[docxGenerator] Critical error loading logo image:", e);
   }
 
-  // --- Header Construction (STABLE FLAT LAYOUT - NO NESTING) ---
+  // --- Header Construction (Branded multi-row layout) ---
   const headerTable = new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     borders: {
@@ -49,13 +49,6 @@ export const generateAndDownloadResume = async (data) => {
         children: [
           new TableCell({
             width: { size: 100, type: WidthType.PERCENTAGE },
-            columnSpan: 2,
-            borders: {
-              top: { style: BorderStyle.NONE },
-              bottom: { style: BorderStyle.NONE },
-              left: { style: BorderStyle.NONE },
-              right: { style: BorderStyle.NONE },
-            },
             children: [
               logoImage ? new Paragraph({
                 children: [
@@ -64,60 +57,73 @@ export const generateAndDownloadResume = async (data) => {
                     transformation: { width: 160, height: 45 },
                   }),
                 ],
-                spacing: { after: 200 },
-              }) : new Paragraph({ text: "", spacing: { after: 200 } }),
+                spacing: { after: 100 },
+              }) : new Paragraph({ text: "", spacing: { after: 100 } }),
             ],
           }),
         ],
       }),
-      // Row 2: Name (Left with Blue Bar) and Position (Right) - FLAT ROW, NO NESTED TABLE
+      // Row 2: Branded Blue Line + Name + Position
       new TableRow({
         children: [
-          // Candidate Name + Blue Bar
           new TableCell({
-            width: { size: 50, type: WidthType.PERCENTAGE },
-            borders: {
-              top: { style: BorderStyle.NONE },
-              bottom: { style: BorderStyle.NONE },
-              left: { style: BorderStyle.SINGLE, size: 24, color: "0056D2" }, // Royal Blue Sidebar
-              right: { style: BorderStyle.NONE },
-            },
-            margins: { left: 120 },
+            width: { size: 100, type: WidthType.PERCENTAGE },
             children: [
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: data.Headers?.candidateName || "Candidate Name",
-                    color: "444444",
-                    size: 28,
-                    font: "Calibri",
-                    bold: true,
+              new Table({
+                width: { size: 100, type: WidthType.PERCENTAGE },
+                borders: {
+                  top: { style: BorderStyle.NONE },
+                  bottom: { style: BorderStyle.NONE },
+                  left: { style: BorderStyle.NONE },
+                  right: { style: BorderStyle.NONE },
+                  insideHorizontal: { style: BorderStyle.NONE },
+                  insideVertical: { style: BorderStyle.NONE },
+                },
+                rows: [
+                  new TableRow({
+                    children: [
+                      // Left part: Blue Bar + Name
+                      new TableCell({
+                        width: { size: 50, type: WidthType.PERCENTAGE },
+                        borders: {
+                          left: { style: BorderStyle.SINGLE, size: 24, color: "0056D2" }, // Royal Blue Vertical Bar
+                        },
+                        margins: { left: 120 },
+                        children: [
+                          new Paragraph({
+                            children: [
+                              new TextRun({
+                                text: data.Headers?.candidateName || "Candidate Name",
+                                color: "444444",
+                                size: 28,
+                                font: "Calibri",
+                                bold: true,
+                              }),
+                            ],
+                          }),
+                        ],
+                      }),
+                      // Right part: Position
+                      new TableCell({
+                        width: { size: 50, type: WidthType.PERCENTAGE },
+                        children: [
+                          new Paragraph({
+                            alignment: AlignmentType.RIGHT,
+                            children: [
+                              new TextRun({
+                                text: data.Headers?.candidatePosition || "Candidate Position",
+                                color: "666666",
+                                size: 24,
+                                font: "Calibri",
+                              }),
+                            ],
+                            spacing: { before: 40 }, // Align roughly with name baseline
+                          }),
+                        ],
+                      }),
+                    ],
                   }),
                 ],
-              }),
-            ],
-          }),
-          // Candidate Position
-          new TableCell({
-            width: { size: 50, type: WidthType.PERCENTAGE },
-            borders: {
-              top: { style: BorderStyle.NONE },
-              bottom: { style: BorderStyle.NONE },
-              left: { style: BorderStyle.NONE },
-              right: { style: BorderStyle.NONE },
-            },
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.RIGHT,
-                children: [
-                  new TextRun({
-                    text: data.Headers?.candidatePosition || "Candidate Position",
-                    color: "666666",
-                    size: 24,
-                    font: "Calibri",
-                  }),
-                ],
-                spacing: { before: 40 },
               }),
             ],
           }),
@@ -374,39 +380,20 @@ export const generateAndDownloadResume = async (data) => {
 };
 
 /** 
- * MAXIMUM STABILITY Section Headers (Table-based bars)
+ * Reverted to Paragraph-based section headers while ensuring structural safety.
  */
 function createSectionHeader(title) {
-  return new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    borders: {
-      top: { style: BorderStyle.NONE },
-      bottom: { style: BorderStyle.NONE },
-      left: { style: BorderStyle.NONE },
-      right: { style: BorderStyle.NONE },
-    },
-    rows: [
-      new TableRow({
-        children: [
-          new TableCell({
-            shading: { fill: "DFDFDF" },
-            margins: { top: 100, bottom: 100, left: 100 },
-            children: [
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: title.toUpperCase(),
-                    bold: true,
-                    size: 24,
-                    font: "Calibri",
-                  })
-                ],
-              })
-            ],
-          }),
-        ],
-      }),
+  return new Paragraph({
+    shading: { fill: "DFDFDF" },
+    children: [
+      new TextRun({
+        text: title.toUpperCase(),
+        bold: true,
+        size: 24,
+        font: "Calibri",
+      })
     ],
+    spacing: { before: 400, after: 200 },
   });
 }
 
