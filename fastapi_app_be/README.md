@@ -266,7 +266,7 @@ fastapi-version/
 │   └── file_utils.py         # File handling utilities
 │
 ├── templates/
-│   └── Maveric_Template.docx # DOCX template (optional)
+│   └── Template.docx # DOCX template (optional)
 │
 └── tests/
     └── (test files here)

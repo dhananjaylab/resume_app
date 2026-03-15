@@ -429,7 +429,7 @@ async def gemini_exception_handler(request, exc: GeminiAPIException):
 // DownloadService.java
 public byte[] downloadResume(ResumeData resumeData) throws IOException {
     // Load template DOCX
-    FileInputStream fis = new FileInputStream("Maveric_Template.docx");
+    FileInputStream fis = new FileInputStream("Template.docx");
     XWPFDocument doc = new XWPFDocument(fis);
     
     // Populate document (using placeholders or direct manipulation)
@@ -463,7 +463,7 @@ from docx.shared import Pt
 
 async def download_resume(resume_data: ResumeData) -> tuple[bytes, str]:
     # Load or create document
-    doc = Document("templates/Maveric_Template.docx")
+    doc = Document("templates/Template.docx")
     
     # Add content
     _populate_document(doc, resume_data)

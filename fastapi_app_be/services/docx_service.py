@@ -42,7 +42,7 @@ async def download_resume(resume_data: ResumeData, template_path: str = None) ->
     try:
         # Use provided template or default
         if template_path is None:
-            template_path = "templates/Maveric_Template.docx"
+            template_path = "templates/Template.docx"
         
         # Check if template exists
         if not os.path.exists(template_path):

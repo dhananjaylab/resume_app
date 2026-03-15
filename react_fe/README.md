@@ -7,7 +7,7 @@ A modern, high-performance React application built with Vite and TailwindCSS for
 - **Real-time Editor**: Modify your resume data with a live-syncing interface.
 - **AI-Powered Parsing**: Integrated with the FastAPI backend for intelligent resume extraction.
 - **Premium DOCX Export**: Generate "invincible" Word documents that are 100% compatible with Microsoft Word.
-- **Branded Header**: Automated branding with the Maveric Systems logo and decorative sidebar.
+- **Branded Header**: Automated branding with the logo and decorative sidebar.
 - **High-Fidelity Preview**: Visual representation of exactly how the final resume will look.
 
 ## Prerequisites
