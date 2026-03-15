@@ -50,16 +50,6 @@ const Header = ({ headers, headersEmitter, originalHeaders }) => {
             paddingTop: "2rem",
           }}
         >
-          <div>
-            <Image
-              src="assets/Maveric_Systems_Logo.jpg"
-              alt="Image"
-              width="150"
-              className="col-md-5"
-              style={{ opacity: "0.7" }}
-            />
-          </div>
-          <br />
           <div
             style={{
               width: "100%",

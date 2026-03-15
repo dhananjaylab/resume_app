@@ -184,29 +184,20 @@ function App() {
       <Toast ref={toast}></Toast>
       <nav style={{
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 2rem",
-          minHeight: 80,
+          justifyContent: "center",
+          padding: "1rem 2rem",
+          minHeight: 100,
           background: "#fff"
         }}>
-          <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
-            <Image
-              src="assets/Maveric_Systems_Logo.jpg"
-              alt="Image"
-              width="150"
-              className="col-md-5"
-              style={{ marginRight: 24 }}
-            />
+          <div>
+            <span style={{ fontSize: "2.5rem", fontWeight: 700, color: "#1a4879" }}>Resume </span>
+            <span style={{ fontSize: "2.5rem", fontWeight: 700, color: "#c2257c" }}>Standardizer</span>
           </div>
-          <div style={{ flex: 2, textAlign: "center" }}>
-            <div>
-              <span style={{ fontSize: "2.2rem", fontWeight: 700, color: "#1a4879" }}>Resume </span>
-              <span style={{ fontSize: "2.2rem", fontWeight: 700, color: "#c2257c" }}>Standardizer</span>
-            </div>
-            <div style={{ fontSize: "1.1rem", color: "#64748b", fontWeight: 500 }}>AI-powered content extraction and processing</div>
+          <div style={{ fontSize: "1.2rem", color: "#64748b", fontWeight: 500, marginTop: "0.5rem" }}>
+            AI-powered content extraction and processing
           </div>
-          <div style={{ flex: 1 }}></div>
         </nav>
       <br />
       <div style={{ margin: "0 2rem" }}>

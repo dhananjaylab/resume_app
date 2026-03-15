@@ -10,27 +10,22 @@ const capitalizeInitial = (str) => {
 };
 
 /**
+ * Removes XML-incompatible control characters.
+ * Matches the logic in the backend docx_service.py.
+ */
+const sanitizeText = (text) => {
+  if (typeof text !== "string") return text;
+  // Remove control characters except for \t, \n, \r
+  // Regex removes: ([\x00-\x08\x0B\x0C\x0E-\x1F\x7F])
+  return text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+};
+
+/**
  * Generates and downloads a DOCX version of the resume.
  * This implementation is browser-compatible and mirrors the React UI layout.
  */
 export const generateAndDownloadResume = async (data) => {
   console.log("[docxGenerator] Starting DOCX generation with data:", data);
-
-  // Fetch the logo to embed it - use the Maveric logo as requested
-  let logoImage;
-  const logoUrl = window.location.origin + "/frontend/assets/Maveric_Systems_Logo.jpg";
-  console.log("[docxGenerator] Attempting to fetch Maveric logo from:", logoUrl);
-  try {
-    const response = await fetch(logoUrl);
-    if (response.ok) {
-      logoImage = await response.arrayBuffer();
-      console.log("[docxGenerator] Logo loaded successfully. Bytes:", logoImage.byteLength);
-    } else {
-      console.warn("[docxGenerator] Logo fetch failed with status:", response.status);
-    }
-  } catch (e) {
-    console.error("[docxGenerator] Critical error loading logo image:", e);
-  }
 
   // --- Header Construction (Branded multi-row layout) ---
   const headerTable = new Table({
@@ -44,25 +39,6 @@ export const generateAndDownloadResume = async (data) => {
       insideVertical: { style: BorderStyle.NONE },
     },
     rows: [
-      // Row 1: Logo
-      new TableRow({
-        children: [
-          new TableCell({
-            width: { size: 100, type: WidthType.PERCENTAGE },
-            children: [
-              logoImage ? new Paragraph({
-                children: [
-                  new ImageRun({
-                    data: logoImage,
-                    transformation: { width: 160, height: 45 },
-                  }),
-                ],
-                spacing: { after: 100 },
-              }) : new Paragraph({ text: "", spacing: { after: 100 } }),
-            ],
-          }),
-        ],
-      }),
       // Row 2: Branded Blue Line + Name + Position
       new TableRow({
         children: [
@@ -93,7 +69,7 @@ export const generateAndDownloadResume = async (data) => {
                           new Paragraph({
                             children: [
                               new TextRun({
-                                text: data.Headers?.candidateName || "Candidate Name",
+                                text: sanitizeText(data.Headers?.candidateName || "Candidate Name"),
                                 color: "444444",
                                 size: 28,
                                 font: "Calibri",
@@ -111,7 +87,7 @@ export const generateAndDownloadResume = async (data) => {
                             alignment: AlignmentType.RIGHT,
                             children: [
                               new TextRun({
-                                text: data.Headers?.candidatePosition || "Candidate Position",
+                                text: sanitizeText(data.Headers?.candidatePosition || "Candidate Position"),
                                 color: "666666",
                                 size: 24,
                                 font: "Calibri",
@@ -125,6 +101,7 @@ export const generateAndDownloadResume = async (data) => {
                   }),
                 ],
               }),
+              new Paragraph({ text: "", spacing: { before: 100 } }), // Mandatory trailing paragraph after table in cell
             ],
           }),
         ],
@@ -140,7 +117,7 @@ export const generateAndDownloadResume = async (data) => {
     children.push(new Paragraph({
       children: [
         new TextRun({
-          text: data.professionalSummary,
+          text: sanitizeText(data.professionalSummary),
           size: 22,
           font: "Calibri",
         })
@@ -158,7 +135,7 @@ export const generateAndDownloadResume = async (data) => {
         new Paragraph({
           children: [
             new TextRun({
-              text: exp,
+              text: sanitizeText(exp),
               size: 22,
               font: "Calibri",
             })
@@ -183,7 +160,7 @@ export const generateAndDownloadResume = async (data) => {
       children.push(createSectionHeader(sec.title));
       data[sec.key].forEach((item) => {
         children.push(new Paragraph({
-          children: [new TextRun({ text: item, size: 22, font: "Calibri" })],
+          children: [new TextRun({ text: sanitizeText(item), size: 22, font: "Calibri" })],
           bullet: { level: 0 },
           spacing: { before: 60, after: 120, line: 240 }
         }));
@@ -204,7 +181,7 @@ export const generateAndDownloadResume = async (data) => {
             shading: { fill: "F5F5F5" },
             children: [
               new Paragraph({
-                children: [new TextRun({ text: credit.category, bold: true, size: 22, font: "Calibri" })],
+                children: [new TextRun({ text: sanitizeText(credit.category), bold: true, size: 22, font: "Calibri" })],
                 spacing: { before: 60, after: 60, line: 240 }
               })
             ]
@@ -214,7 +191,7 @@ export const generateAndDownloadResume = async (data) => {
             children: [
               new Paragraph({
                 children: [new TextRun({
-                  text: Array.isArray(credit.items) ? credit.items.join(", ") : credit.items,
+                  text: sanitizeText(Array.isArray(credit.items) ? credit.items.join(", ") : credit.items),
                   size: 22,
                   font: "Calibri",
                 })],
@@ -251,15 +228,17 @@ export const generateAndDownloadResume = async (data) => {
               new TableCell({
                 width: { size: 30, type: WidthType.PERCENTAGE },
                 shading: { fill: "F5F5F5" },
-                children: (proj.projectDetails || []).map(detail =>
-                  new Paragraph({
-                    children: [
-                      new TextRun({ text: `${capitalizeInitial(detail.key)}: `, bold: true, size: 22, font: "Calibri" }),
-                      new TextRun({ text: capitalizeInitial(detail.value), size: 22, font: "Calibri" }),
-                    ],
-                    spacing: { before: 60, after: 60, line: 240 }
-                  })
-                ),
+                children: (proj.projectDetails || []).length > 0
+                  ? (proj.projectDetails || []).map(detail =>
+                    new Paragraph({
+                      children: [
+                        new TextRun({ text: `${capitalizeInitial(detail.key)}: `, bold: true, size: 22, font: "Calibri" }),
+                        new TextRun({ text: sanitizeText(capitalizeInitial(detail.value)), size: 22, font: "Calibri" }),
+                      ],
+                      spacing: { before: 60, after: 60, line: 240 }
+                    })
+                  )
+                  : [new Paragraph({ text: "" })], // Safety
               }),
               new TableCell({
                 width: { size: 70, type: WidthType.PERCENTAGE },
@@ -270,7 +249,7 @@ export const generateAndDownloadResume = async (data) => {
                       spacing: { before: 40, line: 240 }
                     }),
                     new Paragraph({
-                      children: [new TextRun({ text: proj.description, size: 22, font: "Calibri" })],
+                      children: [new TextRun({ text: sanitizeText(proj.description), size: 22, font: "Calibri" })],
                       spacing: { before: 40, after: 120, line: 240 },
                       alignment: AlignmentType.JUSTIFY
                     }),
@@ -282,12 +261,12 @@ export const generateAndDownloadResume = async (data) => {
                     }),
                     ...proj.responsibilities.map(resp =>
                       new Paragraph({
-                        children: [new TextRun({ text: resp, size: 22, font: "Calibri" })],
+                        children: [new TextRun({ text: sanitizeText(resp), size: 22, font: "Calibri" })],
                         bullet: { level: 0 },
                         spacing: { before: 40, after: 60, line: 240 }
                       })
                     ),
-                  ] : []),
+                  ] : [new Paragraph({ text: "" })]), // Safety
                 ],
               }),
             ],
@@ -363,7 +342,7 @@ export const generateAndDownloadResume = async (data) => {
           ],
         }),
       },
-      children: children,
+      children: children.length > 0 ? children : [new Paragraph({ text: "" })],
     }],
   });
 

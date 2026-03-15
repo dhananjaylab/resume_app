@@ -5,12 +5,24 @@ Updated for new field names (candidateName, from_date, etc.)
 """
 import io
 import os
+import re
 from pathlib import Path
 from docx import Document
 from docx.shared import Pt, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from models.resume import ResumeData
 from exceptions.custom_exceptions import FileProcessingException
+
+
+def _sanitize_text(text: str) -> str:
+    """
+    Remove XML-incompatible control characters.
+    Valid XML 1.0 characters: #x9, #xA, #xD, [#x20-#xD7FF], [#xE000-#xFFFD], [#x10000-#x10FFFF]
+    """
+    if not text or not isinstance(text, str):
+        return text or ""
+    # Remove characters from \x00 to \x1f except \x09 (tab), \x0a (newline), \x0d (carriage return)
+    return re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', text)
 
 
 async def download_resume(resume_data: ResumeData, template_path: str = None) -> tuple[bytes, str]:
@@ -99,9 +111,9 @@ def _replace_header_table(doc: Document, headers) -> None:
                 for cell in row.cells:
                     # Update cell text if matches exactly or contains placeholder
                     if "NAME" in cell.text and headers.candidateName:
-                        _replace_cell_text(cell, "NAME", headers.candidateName, bold=True, size=Pt(16))
+                        _replace_cell_text(cell, "NAME", _sanitize_text(headers.candidateName), bold=True, size=Pt(16))
                     if "POSITION" in cell.text and headers.candidatePosition:
-                        _replace_cell_text(cell, "POSITION", headers.candidatePosition, bold=False, size=Pt(12))
+                        _replace_cell_text(cell, "POSITION", _sanitize_text(headers.candidatePosition), bold=False, size=Pt(12))
 
 
 def _replace_cell_text(cell, placeholder: str, new_text: str, bold: bool = False, size=None):
@@ -125,18 +137,15 @@ def _inject_section(placeholder_paragraph, data, formatter_fn):
         _delete_paragraph(placeholder_paragraph)
     else:
         # If no data, find the previous paragraph (which is usually the title) and delete it too
-        prev_p = placeholder_paragraph.insert_paragraph_before("")
         p_idx = placeholder_paragraph._element.getparent().index(placeholder_paragraph._element)
         parent = placeholder_paragraph._element.getparent()
         
-        # We inserted prev_p exactly before, so prev_p's index is p_idx.
         # The real title paragraph is at p_idx - 1
         if p_idx > 0:
             title_p_element = parent[p_idx - 1]
             parent.remove(title_p_element)
             
         _delete_paragraph(placeholder_paragraph)
-        _delete_paragraph(prev_p)
 
 
 def _delete_paragraph(paragraph):
@@ -151,21 +160,21 @@ def _delete_paragraph(paragraph):
 
 def _format_summary(p, summary: str):
     if not summary: return
-    new_p = p.insert_paragraph_before(summary)
+    new_p = p.insert_paragraph_before(_sanitize_text(summary))
     new_p.space_after = Pt(12)
 
 
 def _format_experience(p, experiences: list):
     for exp in experiences:
         if exp and isinstance(exp, str):
-            new_p = p.insert_paragraph_before(f"• {exp}")
+            new_p = p.insert_paragraph_before(f"• {_sanitize_text(exp)}")
             new_p.space_after = Pt(6)
 
 
 def _format_list(p, items: list):
     for item in items:
         if item and isinstance(item, str):
-            new_p = p.insert_paragraph_before(f"• {item}")
+            new_p = p.insert_paragraph_before(f"• {_sanitize_text(item)}")
             new_p.space_after = Pt(6)
 
 
@@ -175,12 +184,12 @@ def _format_credits(p, credits_list: list):
             continue
         
         cat_p = p.insert_paragraph_before()
-        cat_run = cat_p.add_run(f"{credit.category}:")
+        cat_run = cat_p.add_run(f"{_sanitize_text(credit.category)}:")
         cat_run.font.bold = True
         cat_p.space_before = Pt(6)
         
         if credit.items:
-            items_text = ", ".join(credit.items)
+            items_text = ", ".join([_sanitize_text(item) for item in credit.items if item])
             item_p = p.insert_paragraph_before(items_text)
             item_p.space_after = Pt(6)
 
@@ -189,14 +198,20 @@ def _format_projects(p, projects: list):
     if not projects:
         return
         
+    # Filter valid projects first
+    valid_projects = [
+        proj for proj in projects 
+        if proj and (proj.description or (proj.projectDetails and any(d.key and d.value for d in proj.projectDetails)) or proj.responsibilities)
+    ]
+    
+    if not valid_projects:
+        return
+
     doc = p._parent
     table = doc.add_table(rows=0, cols=2)
     p._p.addprevious(table._tbl)
     
-    for proj in projects:
-        if not proj or not (proj.description or proj.projectDetails or proj.responsibilities):
-            continue
-            
+    for proj in valid_projects:
         row = table.add_row()
         cell_0 = row.cells[0]
         cell_1 = row.cells[1]
@@ -213,9 +228,9 @@ def _format_projects(p, projects: list):
                         c0_p = cell_0.add_paragraph()
                     first0 = False
                     
-                    k = detail.key.strip()
+                    k = _sanitize_text(detail.key.strip())
                     k = k[0].upper() + k[1:] if k else ""
-                    v = detail.value.strip()
+                    v = _sanitize_text(detail.value.strip())
                     v = v[0].upper() + v[1:] if v else ""
                     
                     r_k = c0_p.add_run(f"{k}: ")
@@ -230,7 +245,7 @@ def _format_projects(p, projects: list):
         if proj.description:
             r_d = c1_p.add_run("Description:\n")
             r_d.font.bold = True
-            c1_p.add_run(proj.description)
+            c1_p.add_run(_sanitize_text(proj.description))
             c1_first = False
             
         if proj.responsibilities and len(proj.responsibilities) > 0:
@@ -241,12 +256,12 @@ def _format_projects(p, projects: list):
             
             for index, resp in enumerate(proj.responsibilities):
                 if resp:
-                    resp_p = cell_1.add_paragraph(f"• {resp}")
+                    resp_p = cell_1.add_paragraph(f"• {_sanitize_text(resp)}")
                     if index == len(proj.responsibilities) - 1:
                         resp_p.space_after = Pt(12)
         
         # Spacing Row
-        spacer = table.add_row()
+        table.add_row()
 
 
 def _generate_filename(resume_data: ResumeData) -> str:
