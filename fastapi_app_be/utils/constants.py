@@ -440,7 +440,7 @@ Important rules:
 """
 
 # DOCX Template File
-DOCX_TEMPLATE_PATH = "templates/Maveric_Template.docx"
+DOCX_TEMPLATE_PATH = "templates/Template.docx"
 
 # HTTP Headers
 EXPOSED_HEADERS = ["X-Filename"]

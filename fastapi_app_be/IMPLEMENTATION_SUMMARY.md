@@ -39,7 +39,7 @@ fastapi-version/
 │   └── file_utils.py          # File utilities (108 lines)
 │
 ├── templates/
-│   └── Maveric_Template.docx  # DOCX template (migrated)
+│   └── Template.docx  # DOCX template (migrated)
 │
 ├── .env                       # API configuration (6 lines)
 ├── .gitignore                 # Git ignore rules
@@ -77,7 +77,7 @@ TOTAL: ~2,100 lines of production code
 - JSON response parsing from AI
 
 ### ✅ Document Generation
-- **DOCX file creation** with Maveric template
+- **DOCX file creation** with template
 - **Professional formatting** with sections for:
   - Headers (name, position)
   - Professional summary

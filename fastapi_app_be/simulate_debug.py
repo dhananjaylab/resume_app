@@ -30,7 +30,7 @@ async def simulate_and_inspect():
     )
     
     # Generate
-    template_path = "templates/Maveric_Template.docx"
+    template_path = "templates/Template.docx"
     doc_bytes, filename = await download_resume(resume_data, template_path)
     
     # Save to disk for inspection
